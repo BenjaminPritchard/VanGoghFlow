@@ -17,6 +17,10 @@
  *  Release History
  *  ---------------
  *  10-June-2019    Version 1.1     First released version
+ *  
+ *  ToDo:
+ *  ---------------
+ *  Add Javascript interface
  * 
  *-------------------------------------------------------------------------------*/
 
@@ -253,18 +257,23 @@ namespace VanGoghFlow
             f.Show();
         }
 
+        private String quote(String s)
+        {
+            return "\"" + s + "\"";
+        }
+
         protected void Help_Click(Object sender, System.EventArgs e)
         {
             string directory = AppDomain.CurrentDomain.BaseDirectory;
             string FileName = "help.txt";
-            Process.Start("notepad.exe", directory + FileName);
+            Process.Start("notepad.exe", quote(directory + FileName));
         }
 
         protected void Config_Click(Object sender, System.EventArgs e)
         {
             string directory = AppDomain.CurrentDomain.BaseDirectory;
             string FileName = "VanGoghFlow.ini";
-            Process.Start("notepad.exe", directory + FileName);
+            Process.Start("notepad.exe", quote(directory + FileName));
         }
 
         protected void Exit_Click(Object sender, System.EventArgs e)
