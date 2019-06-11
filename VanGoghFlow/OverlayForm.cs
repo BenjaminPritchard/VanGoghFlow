@@ -12,12 +12,18 @@
  *  Writing programs like this is like standing on the shoulders of giants.
  *  
  *  https://www.kundalinisoftware.com/van-gogh-flow/
+ *  https://github.com/BenjaminPritchard/VanGoghFlow
+ *  
+ *  Release History
+ *  ---------------
+ *  10-June-2019    Version 1.1     First released version
  * 
  *-------------------------------------------------------------------------------*/
 
 
 using System;
-using System.Drawing;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Windows.Forms;
 using CefSharp;
 using CefSharp.WinForms;
@@ -25,41 +31,73 @@ using CefSharp.WinForms;
 
 namespace VanGoghFlow
 {
+
+   
+
     public partial class OverlayForm : Form
     {
 
-        public ChromiumWebBrowser chromeBrowser;
+        Collection<Video> Videos = new Collection<Video>();
+
+        private ChromiumWebBrowser chromeBrowser;
+        private KeyboardHook hook = new KeyboardHook();
+        private int CurVideoIndex = 0;
 
         // read in our config file, and create the popup menu
-        public void ReadConfig()
+        private Boolean ReadConfig()
         {
             string directory = AppDomain.CurrentDomain.BaseDirectory;
-            string FileName = "VanGoghFlow.ini";
-            string[] lines = System.IO.File.ReadAllLines(directory + FileName);
-            foreach (string line in lines)
+            string FileName = "VanGoghFlow.ini123";
+            Boolean retval = false;
+
+            try
             {
-                string URL = line.Split('|')[0];
-                string Name = line.Split('|')[1];
+                string[] lines = System.IO.File.ReadAllLines(directory + FileName);
+                foreach (string line in lines)
+                {
+                    string tmp = line.Trim();
+
+                    // ignore lines that start with a # indicating a comment
+                    if (tmp.Contains("|") && !tmp.StartsWith("#")) {
+
+                        string ID = tmp.Split('|')[0].Trim();
+                        string Description = tmp.Split('|')[1].Trim();
+
+                        // save each video and description we find
+                        Videos.Add(new Video(Description, ID));
+
+                    }
+                    // make sure we successfully read in at least one line...
+                    retval = (Videos.Count > 0);
+                }
+            }  catch (Exception e)
+            {
+                // do nothing, we'll just return false
             }
+
+            return retval;
         }
 
-        // create some global hotkeys, so the user can adjust the opacity
-        // opacity UP
-        // opactiy DOWN
-        // show video
-        // hide video
-        public void RegisterHotKeys()
+        private void IncreaseOpacity()
         {
-
+            if (this.Opacity == 1) return;
+            this.Opacity  += .1;
         }
+
+        private void DecreaseOpacity()
+        {
+            if (this.Opacity == 0) return;
+            this.Opacity -= .1;
+        }
+
 
         public OverlayForm()
         {
 
+            // popup our about box; it will stay on the screen for a few seconds
+            // and then fade itself out
             Form f = new About();
             f.Show();
-
-            //
 
             InitializeComponent();
             InitializeChromium();
@@ -73,16 +111,165 @@ namespace VanGoghFlow
             this.TopMost = true;                // create an always-on-top window, over top of everything else
             this.ShowInTaskbar = false;
 
-            // give the user some hotkeys to adjust the opacity
-            RegisterHotKeys();
-
             // parse our config file
-            ReadConfig();
+            if (!ReadConfig())
+            {
+                Videos.Add(new Video("Particle Tests", "fpViZkhpPHk"));
+                Videos.Add(new Video("Dive Deep Psychedelic Psytrance", "LNeEqv2B_Is"));
+                Videos.Add(new Video("Milkdrop  1", "SMxa21MfaFE"));
+                Videos.Add(new Video("Geiss v2", "4kd6ES-TaoU"));
+                Videos.Add(new Video("Psychedelic Psychill 3D", "8t3XYNxnUBs"));
+                Videos.Add(new Video("The Edge of Infinity", "u1pwtSBTnPU"));
+                Videos.Add(new Video("The Splendor of Color Kaleidoscope", "gxxqdrrpgZc"));
+                Videos.Add(new Video("Cosmic Relaxation", "Y_plhk1FUQA"));                
+            }
 
+            // just put an entry in there to not play a video
+            Videos.Add(new Video("None", ""));
+
+
+            // put the videos into the tray icon
+            ContextMenu m_menu = new ContextMenu();
+            
+            foreach (Video v in Videos) {
+                m_menu.MenuItems.Add(m_menu.MenuItems.Count,
+                    new MenuItem(v.Description, new System.EventHandler(Video_Click)));
+            }
+
+            m_menu.MenuItems.Add("-");
+
+            m_menu.MenuItems.Add(m_menu.MenuItems.Count,
+               new MenuItem("About", new System.EventHandler(About_Click)));
+
+            m_menu.MenuItems.Add(m_menu.MenuItems.Count,
+                new MenuItem("Help", new System.EventHandler(Help_Click)));
+
+            m_menu.MenuItems.Add(m_menu.MenuItems.Count,
+                new MenuItem("Config", new System.EventHandler(Config_Click)));
+
+            m_menu.MenuItems.Add("-");
+
+            m_menu.MenuItems.Add(m_menu.MenuItems.Count,
+               new MenuItem("Exit", new System.EventHandler(Exit_Click)));
+
+
+            notifyIcon1.ContextMenu = m_menu;
             notifyIcon1.Visible = true;
-            notifyIcon1.DoubleClick += notifyIcon1_DoubleClick;
 
-            DoVideo1();
+            // register the event that is fired after the key press.
+            hook.KeyPressed +=
+                new EventHandler<KeyPressedEventArgs>(hook_KeyPressed);
+
+            try
+            {
+                // register the control + alt + left & control + alt + right as global hot keys
+                hook.RegisterHotKey(VanGoghFlow.ModifierKeys.Control | VanGoghFlow.ModifierKeys.Alt, Keys.D);    // decrease opacity
+                hook.RegisterHotKey(VanGoghFlow.ModifierKeys.Control | VanGoghFlow.ModifierKeys.Alt, Keys.I);   // increase opacity
+
+                hook.RegisterHotKey(VanGoghFlow.ModifierKeys.Control | VanGoghFlow.ModifierKeys.Alt, Keys.N);       // next video
+                hook.RegisterHotKey(VanGoghFlow.ModifierKeys.Control | VanGoghFlow.ModifierKeys.Alt, Keys.P);       // prev video
+            }
+            catch (Exception e)
+            {
+                // if this happens, there is nothing we can do
+                // just keep going i guess (without hot key support)
+            }
+
+            // default to playing the first video...
+            PlayVideo(Videos[0].VideoID);
+        }
+
+        private void PlayVideo(String ID)
+        {
+            
+            String YouTubeURL = "https://www.youtube.com/embed/" + ID;
+            String Params = "?rel=0;&autoplay=1&mute=1";
+
+            chromeBrowser.Load(YouTubeURL + Params);
+        }
+
+        private void DoPrevVideo()
+        {
+            if (CurVideoIndex != 0)
+            {
+                CurVideoIndex--;
+                PlayVideo(Videos[CurVideoIndex].VideoID);
+            }
+        }
+
+        private void DoNextVideo()
+        {
+            if (CurVideoIndex < (Videos.Count - 2) )                // don't forget we have "none" in this list!!
+            {
+                CurVideoIndex++;
+                PlayVideo(Videos[CurVideoIndex].VideoID);
+            }
+        }
+
+        private void hook_KeyPressed(object sender, KeyPressedEventArgs e)
+        {
+            if (e.Modifier == (VanGoghFlow.ModifierKeys.Control | VanGoghFlow.ModifierKeys.Alt))
+                switch (e.Key)
+                {
+                    case System.Windows.Forms.Keys.D: DecreaseOpacity(); break;
+                    case System.Windows.Forms.Keys.I: IncreaseOpacity(); break;
+                    case System.Windows.Forms.Keys.N: DoNextVideo(); break;
+                    case System.Windows.Forms.Keys.P: DoPrevVideo(); break;
+                }
+        }
+            
+
+        protected void Video_Click(Object sender, System.EventArgs e)
+        {
+            System.Windows.Forms.MenuItem menu = (System.Windows.Forms.MenuItem)sender;
+            
+
+            if (menu.Text == "None")
+            {
+                chromeBrowser.LoadHtml("<html><body>Hello world</body></html>");
+            }
+            else
+            {
+                // try to find the video they clicked on 
+                foreach (Video v in Videos)
+                {
+                   if (v.Description == menu.Text)
+                    {
+                        String YouTubeURL = "https://www.youtube.com/embed/" + v.VideoID;
+                        String Params = "?rel=0;&autoplay=1&mute=1";
+                        chromeBrowser.Load(YouTubeURL + Params);
+                        break;
+                    }
+                }
+
+                // execution should never reach here!!
+               
+            }
+        }
+
+        protected void About_Click(Object sender, System.EventArgs e)
+        {
+            Form f = new About();
+            f.Show();
+        }
+
+        protected void Help_Click(Object sender, System.EventArgs e)
+        {
+            string directory = AppDomain.CurrentDomain.BaseDirectory;
+            string FileName = "help.txt";
+            Process.Start("notepad.exe", directory + FileName);
+        }
+
+        protected void Config_Click(Object sender, System.EventArgs e)
+        {
+            string directory = AppDomain.CurrentDomain.BaseDirectory;
+            string FileName = "VanGoghFlow.ini";
+            Process.Start("notepad.exe", directory + FileName);
+        }
+
+        protected void Exit_Click(Object sender, System.EventArgs e)
+        {
+            Close();
         }
 
 
@@ -93,7 +280,7 @@ namespace VanGoghFlow
         }
 
         // just create an instance of ChromiumWebBrowser and set it to fill up the whole screen
-        public void InitializeChromium()
+        private void InitializeChromium()
         {
             CefSettings settings = new CefSettings();
             Cef.Initialize(settings);
@@ -101,28 +288,6 @@ namespace VanGoghFlow
             this.Controls.Add(chromeBrowser);
             chromeBrowser.Dock = DockStyle.Fill;
         }
-
-        public void DoNoVideo()
-        {
-            chromeBrowser.LoadHtml("<html><body>Hello world</body></html>");
-        }
-
-        public void DoVideo1()
-        {
-
-            String YouTubeURL = "https://www.youtube.com/embed/QFZBTYFTeto"     ; //vr-jtDjTaIc";
-            String Params = "?rel=0;&autoplay=1&mute=1";
-            chromeBrowser.Load(YouTubeURL + Params);
-        }
-
-        public void DoVideo2()
-        {
-            String YouTubeURL = "https://www.youtube.com/embed/EeqF6m3MqqY";
-            String Params = "?rel=0;&autoplay=1&mute=1";
-            chromeBrowser.Load(YouTubeURL + Params);
-        }
-
-        
 
         // create our window with the layered, transparent flags, and toolwindow flags
         // (WS_EX_TOOLWINDOW prevents us from showing up with ALT-TAB)
@@ -138,45 +303,6 @@ namespace VanGoghFlow
             }
         }
 
-       
-        private void notifyIcon1_DoubleClick(object sender,
-                                     System.EventArgs e)
-        {
-            Form f = new About();
-            f.Show();
-        }
-
-    
-
-        private void HelpToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            /*
-            this.Opacity = 0;
-            Form f = new About();
-            f.ShowDialog();
-            */
-        }
-
-        private void NoneToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            DoNoVideo();
-        }
-
-        private void Video1ToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            DoVideo1();
-        }
-
-        private void Video2ToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            DoVideo2();
-        }
-
-        private void ExitToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            this.Close();
-        }
-
         private void OverlayForm_FormClosed(object sender, FormClosedEventArgs e)
         {
             notifyIcon1.Icon = null;
@@ -185,6 +311,12 @@ namespace VanGoghFlow
         private void OverlayForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             notifyIcon1.Icon = null;
+        }
+
+        private void OnApplicationExit(object sender, EventArgs e)
+        {
+            //Cleanup so that the icon will be removed when the application is closed
+            notifyIcon1.Visible = false;
         }
     }
 }
