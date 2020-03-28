@@ -1,4 +1,11 @@
-﻿using System;
+﻿/*---------------------------------------------------------------------------------
+ *  Van Gogh Flow
+ *  
+ *  Benjamin Pritchard / Kundalini Software
+ *  6-June-2019
+ *-------------------------------------------------------------------------------*/
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;

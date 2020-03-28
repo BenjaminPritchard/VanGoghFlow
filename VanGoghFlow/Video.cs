@@ -1,4 +1,12 @@
-﻿using System;
+﻿/*---------------------------------------------------------------------------------
+ *  Video.cs
+ *  Small class for storing info about a single youtube video
+ *  
+ *  Benjamin Pritchard / Kundalini Software
+ *  6-June-2019
+ *-------------------------------------------------------------------------------*/
+
+using System;
 
 namespace VanGoghFlow
 {

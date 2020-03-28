@@ -20,5 +20,12 @@ Modern programming (and life in general) is a matter of standing on the shoulder
 
 It is my hope that this simple offering can help others find enhanced creativity to utilize the treasures offered by the vistas we can now survey.
 
-Benjamin Pritchard / Kundalini Software
+
+# More Information
+
+Please see the website for more information:
+
+https://www.kundalinisoftware.com/van-gogh-flow/
+
+Benjamin Pritchard / Kundalini Software  
 10-June-2019

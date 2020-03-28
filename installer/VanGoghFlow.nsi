@@ -2,13 +2,13 @@
 
 ; Define your application name
 !define APPNAME "Van Gogh Flow"
-!define APPNAMEANDVERSION "Van Gogh Flow 1.0"
+!define APPNAMEANDVERSION "Van Gogh Flow 1.3"
 
 ; Main Install settings
 Name "${APPNAMEANDVERSION}"
 InstallDir "$PROGRAMFILES\Van Gogh Flow"
 InstallDirRegKey HKLM "Software\${APPNAME}" ""
-OutFile "VanGoghFlowx64-1.1.exe"
+OutFile "VanGoghFlowx64-1.3.exe"
 
 ; Modern interface settings
 !include "MUI.nsh"
@@ -35,6 +35,8 @@ Section "Van Gogh Flow" Section1
 
 	; Set Section Files and Shortcuts
 	SetOutPath "$INSTDIR\"
+	File "..\VanGoghFlow\bin\x64\Release\VanGoghFlow.ini"
+	File "..\VanGoghFlow\bin\x64\Release\help.txt"
 	File "..\VanGoghFlow\bin\x64\Release\cef.pak"
 	File "..\VanGoghFlow\bin\x64\Release\CefSharp.BrowserSubprocess.Core.dll"
 	File "..\VanGoghFlow\bin\x64\Release\CefSharp.BrowserSubprocess.Core.pdb"
@@ -54,7 +56,6 @@ Section "Van Gogh Flow" Section1
 	File "..\VanGoghFlow\bin\x64\Release\cef_extensions.pak"
 	File "..\VanGoghFlow\bin\x64\Release\chrome_elf.dll"
 	File "..\VanGoghFlow\bin\x64\Release\d3dcompiler_47.dll"
-	File "..\VanGoghFlow\bin\x64\Release\debug.log"
 	File "..\VanGoghFlow\bin\x64\Release\devtools_resources.pak"
 	File "..\VanGoghFlow\bin\x64\Release\icudtl.dat"
 	File "..\VanGoghFlow\bin\x64\Release\libcef.dll"
@@ -124,8 +125,7 @@ Section "Van Gogh Flow" Section1
 	SetOutPath "$INSTDIR\swiftshader\"
 	File "..\VanGoghFlow\bin\x64\Release\swiftshader\libEGL.dll"
 	File "..\VanGoghFlow\bin\x64\Release\swiftshader\libGLESv2.dll"
-	File "..\VanGoghFlow\bin\x64\Release\VanGoghFlow.ini"
-	File "..\VanGoghFlow\bin\x64\Release\help.txt"
+	
 	CreateShortCut "$DESKTOP\Van Gogh Flow.lnk" "$INSTDIR\VanGoghFlow.exe"
 	CreateDirectory "$SMPROGRAMS\Van Gogh Flow"
 	CreateShortCut "$SMPROGRAMS\Van Gogh Flow\Van Gogh Flow.lnk" "$INSTDIR\VanGoghFlow.exe"

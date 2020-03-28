@@ -19,7 +19,7 @@ namespace VanGoghFlow
         {
             InitializeComponent();
 
-            // just setup a time to fade out this form
+            // just setup a timer to fade out this form
             timer1.Interval = 100;
             timer1.Enabled = true;
         
@@ -39,7 +39,7 @@ namespace VanGoghFlow
 
         private void Timer1_Tick(object sender, EventArgs e)
         {
-            // hang out for 5 seconds
+            // hang out for 3 seconds
             if (DelayCount < 10 * 3)
             {
                 DelayCount++;

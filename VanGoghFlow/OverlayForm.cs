@@ -17,6 +17,9 @@
  *  Release History
  *  ---------------
  *  10-June-2019    Version 1.1     First released version
+ *  08-July-2019    Version 1.2     Tried to fix problem with FileNotFound Exceptions??
+ *  01-Dec-2020     Version 1.3     Just recompiled; updated version number; changed main .INI file to default to better visualization; added TRY/CATCH when initializing chromium
+ *  17-March-2020   Version 1.4     Move to Visual Studio 2019
  *  
  *  ToDo:
  *  ---------------
@@ -36,8 +39,6 @@ using CefSharp.WinForms;
 namespace VanGoghFlow
 {
 
-   
-
     public partial class OverlayForm : Form
     {
 
@@ -51,7 +52,7 @@ namespace VanGoghFlow
         private Boolean ReadConfig()
         {
             string directory = AppDomain.CurrentDomain.BaseDirectory;
-            string FileName = "VanGoghFlow.ini123";
+            string FileName = "VanGoghFlow.ini";
             Boolean retval = false;
 
             try
@@ -103,8 +104,14 @@ namespace VanGoghFlow
             Form f = new About();
             f.Show();
 
-            InitializeComponent();
-            InitializeChromium();
+            try
+            {
+                InitializeComponent();
+                InitializeChromium();
+            }  catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
 
             // create a semi-transparent always-on-top style window
             // (CreateParams() below sets the extended window styles we need)
@@ -230,7 +237,7 @@ namespace VanGoghFlow
 
             if (menu.Text == "None")
             {
-                chromeBrowser.LoadHtml("<html><body>Hello world</body></html>");
+                chromeBrowser.LoadHtml("<html><body></body></html>");
             }
             else
             {
