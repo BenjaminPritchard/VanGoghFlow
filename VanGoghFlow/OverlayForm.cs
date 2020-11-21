@@ -20,6 +20,7 @@
  *  08-July-2019    Version 1.2     Tried to fix problem with FileNotFound Exceptions??
  *  01-Dec-2020     Version 1.3     Just recompiled; updated version number; changed main .INI file to default to better visualization; added TRY/CATCH when initializing chromium
  *  17-March-2020   Version 1.4     Move to Visual Studio 2019
+ *  20-Nov-2020     Version 1.5     Update CefSharp to latest version
  *  
  *  ToDo:
  *  ---------------
@@ -192,6 +193,8 @@ namespace VanGoghFlow
 
         private void PlayVideo(String ID)
         {
+
+            
             
             String YouTubeURL = "https://www.youtube.com/embed/" + ID;
             String Params = "?rel=0;&autoplay=1&mute=1";
