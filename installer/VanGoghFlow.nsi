@@ -2,13 +2,13 @@
 
 ; Define your application name
 !define APPNAME "Van Gogh Flow"
-!define APPNAMEANDVERSION "Van Gogh Flow 1.3"
+!define APPNAMEANDVERSION "Van Gogh Flow 1.5"
 
 ; Main Install settings
 Name "${APPNAMEANDVERSION}"
 InstallDir "$PROGRAMFILES\Van Gogh Flow"
 InstallDirRegKey HKLM "Software\${APPNAME}" ""
-OutFile "VanGoghFlowx64-1.3.exe"
+OutFile "VanGoghFlowx64-1.5.exe"
 
 ; Modern interface settings
 !include "MUI.nsh"
@@ -61,7 +61,6 @@ Section "Van Gogh Flow" Section1
 	File "..\VanGoghFlow\bin\x64\Release\libcef.dll"
 	File "..\VanGoghFlow\bin\x64\Release\libEGL.dll"
 	File "..\VanGoghFlow\bin\x64\Release\libGLESv2.dll"
-	File "..\VanGoghFlow\bin\x64\Release\natives_blob.bin"
 	File "..\VanGoghFlow\bin\x64\Release\README.txt"
 	File "..\VanGoghFlow\bin\x64\Release\snapshot_blob.bin"
 	File "..\VanGoghFlow\bin\x64\Release\v8_context_snapshot.bin"
