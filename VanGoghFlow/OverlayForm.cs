@@ -21,10 +21,7 @@
  *  01-Dec-2020     Version 1.3     Just recompiled; updated version number; changed main .INI file to default to better visualization; added TRY/CATCH when initializing chromium
  *  17-March-2020   Version 1.4     Move to Visual Studio 2019
  *  20-Nov-2020     Version 1.5     Update CefSharp to latest version
- *  
- *  ToDo:
- *  ---------------
- *  Add Javascript interface
+ *  15-Jan-2021     Verison 2.0     added javascript interface
  * 
  *-------------------------------------------------------------------------------*/
 
@@ -87,14 +84,32 @@ namespace VanGoghFlow
         private void IncreaseOpacity()
         {
             if (this.Opacity == 1) return;
-            this.Opacity  += .1;
+            this.Opacity  += .025;
         }
 
         private void DecreaseOpacity()
         {
             if (this.Opacity == 0) return;
-            this.Opacity -= .1;
+            this.Opacity -= .025;
         }
+
+        private String MakeVideoIDString()
+        {
+            string retVal = "var VideoIDs = new Array(";
+
+            foreach (Video v in Videos)
+            {
+                if (v.VideoID != "")
+                    retVal = retVal + quote(v.VideoID) + ","; 
+            }
+            
+            // get rid of last comma
+            retVal = retVal.Substring(0, retVal.Length-1);
+            retVal = retVal + ");";
+
+            return retVal; 
+        }
+
 
 
         public OverlayForm()
@@ -108,7 +123,7 @@ namespace VanGoghFlow
             try
             {
                 InitializeComponent();
-                InitializeChromium();
+                
             }  catch (Exception ex)
             {
                 MessageBox.Show(ex.ToString());
@@ -138,11 +153,11 @@ namespace VanGoghFlow
 
             // just put an entry in there to not play a video
             Videos.Add(new Video("None", ""));
-
+            Videos.Add(new Video("Custom", ""));
 
             // put the videos into the tray icon
             ContextMenu m_menu = new ContextMenu();
-            
+
             foreach (Video v in Videos) {
                 m_menu.MenuItems.Add(m_menu.MenuItems.Count,
                     new MenuItem(v.Description, new System.EventHandler(Video_Click)));
@@ -187,19 +202,34 @@ namespace VanGoghFlow
                 // just keep going i guess (without hot key support)
             }
 
-            // default to playing the first video...
-            PlayVideo(Videos[0].VideoID);
+            // maybe do this last...
+            InitializeChromium();
+            loadHTML();
+
         }
 
+        private void loadHTML()
+        {
+            string directory = AppDomain.CurrentDomain.BaseDirectory;
+            string FileName = "index.html";
+
+            try
+            {
+                string txt = System.IO.File.ReadAllText(directory + FileName);
+                txt = txt.Replace("--VIDEO_ID_LIST--", MakeVideoIDString());
+                chromeBrowser.LoadHtml(txt);
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show("fatal error: cannot load initial HTML");
+            }
+
+        }
+
+        // just call the javascript function in the script on the page 
         private void PlayVideo(String ID)
         {
-
-            
-            
-            String YouTubeURL = "https://www.youtube.com/embed/" + ID;
-            String Params = "?rel=0;&autoplay=1&mute=1";
-
-            chromeBrowser.Load(YouTubeURL + Params);
+            chromeBrowser.ExecuteScriptAsync("playVideoByID", ID);
         }
 
         private void DoPrevVideo()
@@ -242,6 +272,13 @@ namespace VanGoghFlow
             {
                 chromeBrowser.LoadHtml("<html><body></body></html>");
             }
+            else if (menu.Text == "Custom")
+            {
+                //string txt = System.IO.File.ReadAllText("plugins\\1\\index.html");
+                //chromeBrowser.LoadHtml(txt);
+                // FIXME!!!
+                chromeBrowser.Load("https://slicker.me/javascript/starfield.htm");
+            }
             else
             {
                 // try to find the video they clicked on 
@@ -249,9 +286,7 @@ namespace VanGoghFlow
                 {
                    if (v.Description == menu.Text)
                     {
-                        String YouTubeURL = "https://www.youtube.com/embed/" + v.VideoID;
-                        String Params = "?rel=0;&autoplay=1&mute=1";
-                        chromeBrowser.Load(YouTubeURL + Params);
+                        PlayVideo(v.VideoID);
                         break;
                     }
                 }
@@ -302,7 +337,15 @@ namespace VanGoghFlow
         private void InitializeChromium()
         {
             CefSettings settings = new CefSettings();
+
+            // enable this if necessary...
+            if (false)
+            {
+                //settings.RemoteDebuggingPort = 8088;
+            }
+
             Cef.Initialize(settings);
+
             chromeBrowser = new ChromiumWebBrowser("");
             this.Controls.Add(chromeBrowser);
             chromeBrowser.Dock = DockStyle.Fill;

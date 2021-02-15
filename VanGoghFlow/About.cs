@@ -32,13 +32,17 @@ namespace VanGoghFlow
 
         private void PictureBox1_Paint(object sender, PaintEventArgs e)
         {
-            string VersionString = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
+            string VersionString =
+                System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.Major + "." +
+                System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.Minor;
+
             e.Graphics.DrawString("Van Gogh Flow / Kundalini Software", new Font("Arial", 20), Brushes.White, new Point(15, 115));
             e.Graphics.DrawString("Version " + VersionString, new Font("Arial", 10), Brushes.White, new Point(15, 155));
         }
 
         private void Timer1_Tick(object sender, EventArgs e)
         {
+            
             // hang out for 3 seconds
             if (DelayCount < 10 * 3)
             {
