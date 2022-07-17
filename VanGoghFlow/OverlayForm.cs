@@ -155,8 +155,7 @@ namespace VanGoghFlow
 
             // just put an entry in there to not play a video
             Videos.Add(new Video("None", ""));
-            Videos.Add(new Video("Custom", ""));
-
+        
             // put the videos into the tray icon
             ContextMenu m_menu = new ContextMenu();
 
