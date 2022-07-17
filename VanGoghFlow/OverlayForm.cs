@@ -22,6 +22,7 @@
  *  17-March-2020   Version 1.4     Move to Visual Studio 2019
  *  20-Nov-2020     Version 1.5     Update CefSharp to latest version
  *  15-Jan-2021     Verison 2.0     added javascript interface
+ *  16-July-2022    Version 3.0     removed javascript interface; updated cefSharp; moved to Visual Studio 2022
  * 
  *-------------------------------------------------------------------------------*/
 
@@ -29,6 +30,7 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Net.NetworkInformation;
 using System.Windows.Forms;
 using CefSharp;
 using CefSharp.WinForms;
@@ -204,35 +206,22 @@ namespace VanGoghFlow
 
             // maybe do this last...
             InitializeChromium();
-            loadHTML();
+
+            // default to playing the first video...
+            PlayVideo(Videos[0].VideoID);
 
         }
 
-        private void loadHTML()
-        {
-            string directory = AppDomain.CurrentDomain.BaseDirectory;
-            string FileName = "index.html";
+// just call the javascript function in the script on the page 
+    private void PlayVideo(String ID)
+    { 
+        string YouTubeURL = "https://www.youtube.com/embed/" + ID;
+        String Params = "?rel=0;&autoplay=1&mute=1";
 
-            try
-            {
-                string txt = System.IO.File.ReadAllText(directory + FileName);
-                txt = txt.Replace("--VIDEO_ID_LIST--", MakeVideoIDString());
-                chromeBrowser.LoadHtml(txt);
-            }
-            catch (Exception e)
-            {
-                MessageBox.Show("fatal error: cannot load initial HTML");
-            }
+        chromeBrowser.Load(YouTubeURL + Params);
+    }
 
-        }
-
-        // just call the javascript function in the script on the page 
-        private void PlayVideo(String ID)
-        {
-            chromeBrowser.ExecuteScriptAsync("playVideoByID", ID);
-        }
-
-        private void DoPrevVideo()
+    private void DoPrevVideo()
         {
             if (CurVideoIndex != 0)
             {
@@ -271,13 +260,6 @@ namespace VanGoghFlow
             if (menu.Text == "None")
             {
                 chromeBrowser.LoadHtml("<html><body></body></html>");
-            }
-            else if (menu.Text == "Custom")
-            {
-                //string txt = System.IO.File.ReadAllText("plugins\\1\\index.html");
-                //chromeBrowser.LoadHtml(txt);
-                // FIXME!!!
-                chromeBrowser.Load("https://slicker.me/javascript/starfield.htm");
             }
             else
             {
